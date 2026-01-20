@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { CompletionImage } from './entities/completion-image.entity';
 import { UUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { Challenge } from 'src/challenges/entities/challenge.entity';
 
 @Injectable()
 export class ParticipationsService {
@@ -93,7 +94,7 @@ export class ParticipationsService {
       this.imgRepo.create({
         userId,
         challengeId,
-        url: img.filename,
+        url: `${this.config.get('API_URL')}/uploads/completions/${img.filename}`,
         uploadedAt: new Date(),
       }),
     );
@@ -101,8 +102,28 @@ export class ParticipationsService {
     return this.imgRepo.save(entities);
   }
 
-  async getUserActiveParticipations(userId: UUID) {
-    return this.participationRepo.find({ where: { userId, isActive: true } });
+  async getUserActiveChallenges(userId: UUID) {
+    return this.participationRepo
+      .createQueryBuilder('part')
+      .innerJoin(Challenge, 'chal', 'chal.id = part.challengeId')
+      .where('part.userId = :userId', { userId })
+      .andWhere('part.isActive = true')
+      .select([
+        'chal.id AS "id"',
+        'chal.title AS "title"',
+        'chal.description AS "description"',
+        'chal.thumbnailUrl AS "thumbnailUrl"',
+        'chal.price AS "price"',
+        'chal.durationMinutes AS "durationMinutes"',
+        'chal.place AS "place"',
+        'chal.vehicle AS "vehicle"',
+        'chal.placeType AS "placeType"',
+        'chal.approved AS "approved"',
+        'chal.submittedByUserId AS "submittedByUserId"',
+        'chal.createdAt AS "createdAt"',
+        'chal.updatedAt AS "updatedAt"',
+      ])
+      .getRawMany();
   }
 
   async getUserAllCompletedCount(userId: UUID) {
@@ -133,9 +154,9 @@ export class ParticipationsService {
       .andWhere('u.allowPublicImages = true')
       .orderBy('img.uploadedAt', 'DESC')
       .select([
-        'img.userId AS userId',
-        'img.url AS url',
-        'img.uploadedAt AS uploadedAt',
+        'img.userId AS "userId"',
+        'img.url AS "url"',
+        'img.uploadedAt AS "uploadedAt"',
       ]);
 
     const allImages = await qb.getRawMany();
@@ -151,5 +172,27 @@ export class ParticipationsService {
     const paginated = items.slice((page - 1) * page * perPage);
 
     return { items: paginated, page, perPage };
+  }
+
+  async getStatus(userId: UUID, challengeId: UUID) {
+    const p = await this.participationRepo.findOne({
+      where: { userId, challengeId },
+    });
+
+    if (!p) {
+      return {
+        exists: false,
+        isActive: false,
+        completionCount: 0,
+        startedAt: null,
+      };
+    }
+
+    return {
+      exists: true,
+      isActive: p.isActive,
+      completionCount: p.completionCount,
+      startedAt: p.startedAt,
+    };
   }
 }

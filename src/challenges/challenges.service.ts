@@ -9,22 +9,28 @@ import { Repository } from 'typeorm';
 import { CreateChallengeDto } from './dto/create-challenge.dto';
 import { UUID } from 'crypto';
 import { Filters } from './types/filters.type';
+import { ConfigService } from '@nestjs/config';
+import { Participation } from 'src/participations/entities/participation.entity';
 
 @Injectable()
 export class ChallengesService {
   constructor(
     @InjectRepository(Challenge) private repo: Repository<Challenge>,
+    private config: ConfigService,
   ) {}
 
   async submitChallenge(
     dto: CreateChallengeDto,
     userId: UUID,
-    tumbnail: Express.Multer.File,
+    thumbnail: Express.Multer.File | null,
   ) {
     const challenge = this.repo.create({
       ...dto,
       submittedByUserId: userId,
-      thumbnailUrl: tumbnail.filename,
+      thumbnailUrl:
+        thumbnail != null
+          ? `${this.config.get('API_URL')}/uploads/thumbnails/${thumbnail.filename}`
+          : undefined,
       approved: false,
     });
     return this.repo.save(challenge);
@@ -53,16 +59,16 @@ export class ChallengesService {
         'Min duration cannot be greater than max duration',
       );
 
-    if (filters.minPrice)
+    if (filters.minPrice !== undefined && filters.minPrice >= 0)
       qb.andWhere('chal.price >= :min', { min: filters.minPrice });
-    if (filters.maxPrice)
+    if (filters.maxPrice !== undefined && filters.maxPrice >= 0)
       qb.andWhere('chal.price <= :max', { max: filters.maxPrice });
 
-    if (filters.minDuration)
+    if (filters.minDuration !== undefined && filters.minDuration >= 0)
       qb.andWhere('chal.durationMinutes >= :minDuration', {
         minDuration: filters.minDuration,
       });
-    if (filters.maxDuration)
+    if (filters.maxDuration !== undefined && filters.maxDuration >= 0)
       qb.andWhere('chal.durationMinutes <= :maxDuration', {
         maxDuration: filters.maxDuration,
       });
@@ -89,6 +95,39 @@ export class ChallengesService {
     const chal = await this.repo.findOne({ where: { id } });
     if (!chal) throw new NotFoundException('Challenge not found');
     return chal;
+  }
+
+  async getPendingChallenges(approved?: boolean, page = 1, perPage = 20) {
+    if (approved === undefined) {
+      throw new BadRequestException('Invalid approved value');
+    }
+
+    const [items, total] = await this.repo.findAndCount({
+      where: { approved: approved },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * perPage,
+      take: perPage,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        thumbnailUrl: true,
+        price: true,
+        durationMinutes: true,
+        place: true,
+        vehicle: true,
+        submittedByUserId: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      items,
+      total,
+      page,
+      perPage,
+      totalPages: Math.ceil(total / perPage),
+    };
   }
 
   async approve(id: UUID) {
