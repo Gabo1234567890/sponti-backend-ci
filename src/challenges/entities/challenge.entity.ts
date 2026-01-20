@@ -1,8 +1,11 @@
 import type { UUID } from 'crypto';
+import { CompletionImage } from 'src/participations/entities/completion-image.entity';
+import { Participation } from 'src/participations/entities/participation.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -61,4 +64,10 @@ export class Challenge {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
+
+  @OneToMany(() => Participation, (p) => p.challenge)
+  participations: Participation[];
+
+  @OneToMany(() => CompletionImage, (img) => img.challenge)
+  completionImages: CompletionImage[];
 }
