@@ -11,7 +11,13 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ChallengesService } from './challenges.service';
 import { JwtAuthGuard } from 'src/utils/guards/jwt-auth.guard';
 import { CreateChallengeDto } from './dto/create-challenge.dto';
@@ -24,19 +30,23 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { v4 } from 'uuid';
 import { PlaceType, Vehicle } from './entities/challenge.entity';
+import { ParticipationsService } from 'src/participations/participations.service';
 
 @ApiTags('challenges')
 @Controller('challenges')
 export class ChallengesController {
-  constructor(private challengesService: ChallengesService) {}
+  constructor(
+    private challengesService: ChallengesService,
+    private participationsService: ParticipationsService,
+  ) {}
 
   @Post('submit')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseInterceptors(
-    FileInterceptor('tumbnail', {
+    FileInterceptor('thumbnail', {
       storage: diskStorage({
-        destination: './uploads/tumbnails',
+        destination: './uploads/thumbnails',
         filename: (_req, file, cb) => {
           const ext = file.originalname.split('.').pop();
           cb(null, v4() + '.' + ext);
@@ -50,7 +60,7 @@ export class ChallengesController {
     schema: {
       type: 'object',
       properties: {
-        tumbnail: { type: 'string', format: 'binary' },
+        thumbnail: { type: 'string', format: 'binary' },
         title: { type: 'string' },
         description: { type: 'string' },
         price: { type: 'number' },
@@ -62,11 +72,11 @@ export class ChallengesController {
     },
   })
   async submit(
-    @UploadedFile() tumbnail: Express.Multer.File,
+    @UploadedFile() thumbnail: Express.Multer.File | null,
     @Body() dto: CreateChallengeDto,
     @CurrentUser() user: CurrentUserType,
   ) {
-    return this.challengesService.submitChallenge(dto, user.userId, tumbnail);
+    return this.challengesService.submitChallenge(dto, user.userId, thumbnail);
   }
 
   @Get()
@@ -83,21 +93,23 @@ export class ChallengesController {
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async get(@Param('id') id: UUID) {
-    return this.challengesService.findById(id);
-  }
-
-  @Patch(':id/approve')
-  @UseGuards(JwtAuthGuard, AdminGuard)
-  @ApiBearerAuth()
-  async approve(@Param('id') id: UUID) {
-    return this.challengesService.approve(id);
-  }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
-  @ApiBearerAuth()
-  async delete(@Param('id') id: UUID) {
-    return this.challengesService.delete(id);
+  @ApiQuery({ name: 'completionImagesPage', required: false, type: Number })
+  @ApiQuery({ name: 'completionImagesPerPage', required: false, type: Number })
+  async get(
+    @CurrentUser() user: CurrentUserType,
+    @Param('id') id: UUID,
+    @Query('completionImagesPage') completionImagesPage = 1,
+    @Query('completionImagesPerPage') completionImagesPerPage = 10,
+  ) {
+    const [challenge, publicCompletionImages, status] = await Promise.all([
+      this.challengesService.findById(id),
+      this.participationsService.getPublicCompletionImages(
+        id,
+        completionImagesPage,
+        completionImagesPerPage,
+      ),
+      this.participationsService.getStatus(user.userId, id),
+    ]);
+    return { challenge, publicCompletionImages, status };
   }
 }

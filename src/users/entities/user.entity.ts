@@ -1,11 +1,19 @@
 import type { UUID } from 'crypto';
+import { CompletionImage } from 'src/participations/entities/completion-image.entity';
+import { Participation } from 'src/participations/entities/participation.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+export enum UserRole {
+  USER = 'user',
+  ADMIN = 'admin',
+}
 
 @Entity('users')
 export class User {
@@ -33,8 +41,8 @@ export class User {
   @Column({ default: false })
   allowPublicImages: boolean;
 
-  @Column({ default: 'user' })
-  role: 'user' | 'admin';
+  @Column({ default: UserRole.USER })
+  role: UserRole;
 
   @Column({ type: 'text', name: 'refresh_token', nullable: true })
   hashedRefreshToken?: string | null;
@@ -50,4 +58,10 @@ export class User {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
+
+  @OneToMany(() => Participation, (p) => p.user)
+  participations: Participation[];
+
+  @OneToMany(() => CompletionImage, (img) => img.user)
+  completionImages: CompletionImage[];
 }

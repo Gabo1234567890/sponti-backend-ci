@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import type { UserProfileResponse } from './types/profile-response.type';
@@ -81,13 +81,91 @@ export class UsersService {
       .skip((page - 1) * perPage)
       .take(perPage)
       .select([
-        'img.url AS imageUrl',
-        'img.uploadedAt AS uploadedAt',
-        'chal.id AS challengeId',
-        'chal.title AS challengeTitle',
+        'img.url AS "imageUrl"',
+        'img.uploadedAt AS "uploadedAt"',
+        'chal.id AS "challengeId"',
+        'chal.title AS "challengeTitle"',
       ]);
 
     const items = await qb.getRawMany();
     return { items, page, perPage };
+  }
+
+  async getAccountDetails(userId: UUID) {
+    const user = await this.findById(userId);
+    return {
+      username: user.username,
+      email: user.email,
+      allowPublicImages: user.allowPublicImages,
+      role: user.role,
+    };
+  }
+
+  async getAllUsers(page = 1, perPage = 10) {
+    const [items, total] = await this.repo.findAndCount({
+      order: { createdAt: 'ASC' },
+      skip: (page - 1) * perPage,
+      take: perPage,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        allowPublicImages: true,
+        role: true,
+        emailVerified: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      items,
+      total,
+      page,
+      perPage,
+      totalPages: Math.ceil(total / perPage),
+    };
+  }
+
+  async updateUserRole(userId: UUID, newRole: UserRole, adminId: UUID) {
+    const user = await this.repo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.id === adminId) {
+      throw new BadRequestException('You cannot change your own role');
+    }
+
+    if (user.role === newRole) {
+      return {
+        id: user.id,
+        role: user.role,
+      };
+    }
+
+    user.role = newRole;
+    await this.repo.save(user);
+
+    return {
+      id: user.id,
+      role: user.role,
+    };
+  }
+
+  async deleteUser(userId: UUID, adminId: UUID) {
+    if (userId === adminId) {
+      throw new BadRequestException('You cannot delete your own account');
+    }
+
+    const user = await this.repo.find({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.repo.remove(user);
+
+    return { message: 'User deleted successfully' };
   }
 }

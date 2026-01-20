@@ -104,7 +104,7 @@ export class ParticipationsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async activeParticipations(@CurrentUser() user: CurrentUserType) {
-    return this.participationsService.getUserActiveParticipations(user.userId);
+    return this.participationsService.getUserActiveChallenges(user.userId);
   }
 
   @Get('completed-count')
@@ -140,5 +140,15 @@ export class ParticipationsController {
       +page,
       +perPage,
     );
+  }
+
+  @Get(':challengeId/status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async status(
+    @CurrentUser() user: CurrentUserType,
+    @Param('challengeId') challengeId: UUID,
+  ) {
+    return this.participationsService.getStatus(user.userId, challengeId);
   }
 }

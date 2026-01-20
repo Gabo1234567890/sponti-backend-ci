@@ -1,5 +1,13 @@
 import type { UUID } from 'crypto';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Challenge } from 'src/challenges/entities/challenge.entity';
+import { User } from 'src/users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('completion-image')
 export class CompletionImage {
@@ -17,4 +25,16 @@ export class CompletionImage {
 
   @Column({ type: 'timestamptz' })
   uploadedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.completionImages, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @ManyToOne(() => Challenge, (chal) => chal.completionImages, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'challengeId' })
+  challenge: Challenge;
 }
