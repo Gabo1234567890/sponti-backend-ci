@@ -1,8 +1,12 @@
 import type { UUID } from 'crypto';
+import { Challenge } from 'src/challenges/entities/challenge.entity';
+import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -29,4 +33,14 @@ export class Participation {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.participations, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @ManyToOne(() => Challenge, (chal) => chal.participations, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'challengeId' })
+  challenge: Challenge;
 }
