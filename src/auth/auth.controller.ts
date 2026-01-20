@@ -5,7 +5,7 @@ import {
   Get,
   Post,
   Query,
-  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -20,6 +20,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ResetPasswordBodyDto } from './dto/reset-password-body.dto';
 import { CurrentUser } from 'src/utils/decorators/current-user.decorator';
 import type { CurrentUserType } from '../utils/types/current-user.type';
+import type { Response } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -54,7 +55,6 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Rotate refresh token' })
   async refresh(@Body() dto: RefreshTokenDto) {
     const payload = this.authService['jwtService'].verify(dto.refreshToken, {
@@ -89,5 +89,29 @@ export class AuthController {
       query.token,
       body.password,
     );
+  }
+
+  @Get('reset-password-redirect')
+  @ApiOperation({ summary: 'Redirect user to mobile app' })
+  async resetPasswordRedirect(
+    @Query('token') token: string,
+    @Query('email') email: string,
+    @Res() res: Response,
+  ) {
+    const uri = `sponti://forgot-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+
+    return res.redirect(302, uri);
+  }
+
+  @Get('verify-email-redirect')
+  @ApiOperation({ summary: 'Redirect user to mobile app' })
+  async verifyEmailRedirect(
+    @Query('token') token: string,
+    @Query('email') email: string,
+    @Res() res: Response,
+  ) {
+    const uri = `sponti://verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+
+    return res.redirect(302, uri);
   }
 }
