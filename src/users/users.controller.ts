@@ -70,17 +70,6 @@ export class UsersController {
     return { message: 'Account deleted' };
   }
 
-  @Get('memories')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  async getMemories(
-    @CurrentUser() user: CurrentUserType,
-    @Query('page') page = 1,
-    @Query('perPage') perPage = 10,
-  ) {
-    return this.usersService.getUserMemories(user.userId, +page, +perPage);
-  }
-
   @Get('account-details')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
