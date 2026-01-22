@@ -56,18 +56,18 @@ export class AdminController {
     return this.usersService.deleteUser(userId, admin.userId);
   }
 
-  @Get('challenges/pending')
+  @Get('challenges')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth()
-  @ApiQuery({ name: 'approved', required: false, type: Boolean })
+  @ApiQuery({ name: 'approved', required: true, type: Boolean })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'perPage', required: false, type: Number })
-  async getPendingChallenges(
+  async getChallenges(
     @Query('approved') approved: string,
     @Query('page') page = 1,
     @Query('perPage') perPage = 20,
   ) {
-    return this.challengesService.getPendingChallenges(
+    return this.challengesService.getChallenges(
       approved === 'true' ? true : approved === 'false' ? false : undefined,
       page,
       perPage,

@@ -97,7 +97,7 @@ export class ChallengesService {
     return chal;
   }
 
-  async getPendingChallenges(approved?: boolean, page = 1, perPage = 20) {
+  async getChallenges(approved?: boolean, page = 1, perPage = 20) {
     if (approved === undefined) {
       throw new BadRequestException('Invalid approved value');
     }
@@ -139,5 +139,6 @@ export class ChallengesService {
   async delete(id: UUID) {
     const chal = await this.findById(id);
     await this.repo.remove(chal);
+    return { message: 'Challenge deleted successfully' };
   }
 }
