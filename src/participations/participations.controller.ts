@@ -100,20 +100,6 @@ export class ParticipationsController {
     );
   }
 
-  @Get('active')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  async activeParticipations(@CurrentUser() user: CurrentUserType) {
-    return this.participationsService.getUserActiveChallenges(user.userId);
-  }
-
-  @Get('completed-count')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  async allCompletedCount(@CurrentUser() user: CurrentUserType) {
-    return this.participationsService.getUserAllCompletedCount(user.userId);
-  }
-
   @Get(':challengeId/completed-count')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -125,30 +111,5 @@ export class ParticipationsController {
       user.userId,
       challengeId,
     );
-  }
-
-  @Get(':challengeId/public-images')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  async publicImages(
-    @Param('challengeId') challengeId: UUID,
-    @Query('page') page = 1,
-    @Query('perPage') perPage = 10,
-  ) {
-    return this.participationsService.getPublicCompletionImages(
-      challengeId,
-      +page,
-      +perPage,
-    );
-  }
-
-  @Get(':challengeId/status')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  async status(
-    @CurrentUser() user: CurrentUserType,
-    @Param('challengeId') challengeId: UUID,
-  ) {
-    return this.participationsService.getStatus(user.userId, challengeId);
   }
 }
