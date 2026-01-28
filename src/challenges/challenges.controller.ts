@@ -1,10 +1,8 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
-  Patch,
   Post,
   Query,
   UploadedFile,
@@ -25,7 +23,6 @@ import { CurrentUser } from 'src/utils/decorators/current-user.decorator';
 import type { CurrentUserType } from 'src/utils/types/current-user.type';
 import type { UUID } from 'crypto';
 import { ListChallengesQueryDto } from './dto/list-challenges-query.dto';
-import { AdminGuard } from 'src/utils/guards/admin.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { v4 } from 'uuid';

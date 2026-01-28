@@ -10,7 +10,6 @@ import { CreateChallengeDto } from './dto/create-challenge.dto';
 import { UUID } from 'crypto';
 import { Filters } from './types/filters.type';
 import { ConfigService } from '@nestjs/config';
-import { Participation } from 'src/participations/entities/participation.entity';
 
 @Injectable()
 export class ChallengesService {

@@ -1,13 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsInt,
-  IsOptional,
-  IsString,
-  Min,
-  Max,
-  MaxLength,
-  IsEnum,
-} from 'class-validator';
+import { IsInt, IsString, Min, Max, MaxLength, IsEnum } from 'class-validator';
 import { PlaceType, Vehicle } from '../entities/challenge.entity';
 import { Type } from 'class-transformer';
 
