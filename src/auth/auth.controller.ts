@@ -93,7 +93,7 @@ export class AuthController {
 
   @Get('reset-password-redirect')
   @ApiOperation({ summary: 'Redirect user to mobile app' })
-  async resetPasswordRedirect(
+  resetPasswordRedirect(
     @Query('token') token: string,
     @Query('email') email: string,
     @Res() res: Response,
@@ -105,7 +105,7 @@ export class AuthController {
 
   @Get('verify-email-redirect')
   @ApiOperation({ summary: 'Redirect user to mobile app' })
-  async verifyEmailRedirect(
+  verifyEmailRedirect(
     @Query('token') token: string,
     @Query('email') email: string,
     @Res() res: Response,
