@@ -21,6 +21,7 @@ import { ResetPasswordBodyDto } from './dto/reset-password-body.dto';
 import { CurrentUser } from 'src/utils/decorators/current-user.decorator';
 import type { CurrentUserType } from '../utils/types/current-user.type';
 import type { Response } from 'express';
+import { UUID } from 'crypto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -57,7 +58,7 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({ summary: 'Rotate refresh token' })
   async refresh(@Body() dto: RefreshTokenDto) {
-    const payload = this.authService['jwtService'].verify(dto.refreshToken, {
+    const payload: { sub: UUID } = this.authService['jwtService'].verify(dto.refreshToken, {
       secret: this.authService['config'].get('JWT_REFRESH_TOKEN_SECRET'),
     });
     return this.authService.refreshTokens(payload.sub, dto.refreshToken);

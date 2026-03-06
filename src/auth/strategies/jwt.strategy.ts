@@ -6,9 +6,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserRole } from 'src/users/entities/user.entity';
 
 interface JwtPayload {
-  sub: UUID,
-  email: string,
-  role: UserRole
+  sub: UUID;
+  email: string;
+  role: UserRole;
 }
 
 @Injectable()
@@ -21,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  validate(payload: JwtPayload) {
     return { userId: payload.sub, email: payload.email, role: payload.role };
   }
 }

@@ -20,14 +20,14 @@ export class ListChallengesQueryDto {
   maxDuration?: number;
 
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.split(',') : value,
   )
   @IsEnum(Vehicle, { each: true })
   vehicles?: Array<Vehicle>;
 
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.split(',') : value,
   )
   @IsEnum(PlaceType, { each: true })

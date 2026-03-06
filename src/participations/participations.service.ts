@@ -159,7 +159,7 @@ export class ParticipationsService {
         'img.uploadedAt AS "uploadedAt"',
       ]);
 
-    const allImages = await qb.getRawMany();
+    const allImages = await qb.getRawMany<{userId: UUID, url: string, uploadedAt: Date}>();
 
     const unique = new Map();
     for (const img of allImages) {
