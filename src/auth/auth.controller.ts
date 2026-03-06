@@ -58,9 +58,12 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({ summary: 'Rotate refresh token' })
   async refresh(@Body() dto: RefreshTokenDto) {
-    const payload: { sub: UUID } = this.authService['jwtService'].verify(dto.refreshToken, {
-      secret: this.authService['config'].get('JWT_REFRESH_TOKEN_SECRET'),
-    });
+    const payload: { sub: UUID } = this.authService['jwtService'].verify(
+      dto.refreshToken,
+      {
+        secret: this.authService['config'].get('JWT_REFRESH_TOKEN_SECRET'),
+      },
+    );
     return this.authService.refreshTokens(payload.sub, dto.refreshToken);
   }
 
