@@ -17,18 +17,17 @@ export class MailService {
     });
   }
 
-  async sendResetPassword(to: string, resetUrl: string) {
-    const info = await this.transporter.sendMail({
+  async sendResetPassword(to: string, resetUrl: string): Promise<void> {
+    await this.transporter.sendMail({
       from: this.config.get('SMTP_USER'),
       to,
       subject: 'Sponti - Password Reset',
       html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`,
     });
-    return info;
   }
 
-  async sendVerificationEmail(to: string, verifyUrl: string) {
-    const info = await this.transporter.sendMail({
+  async sendVerificationEmail(to: string, verifyUrl: string): Promise<void> {
+    await this.transporter.sendMail({
       from: this.config.get('SMTP_USER'),
       to,
       subject: 'Sponti - Verify Your Email',
@@ -36,6 +35,5 @@ export class MailService {
       <p>Please verify your email by clicking below:</p>
       <p><a href="${verifyUrl}">Verify Email</a></p>`,
     });
-    return info;
   }
 }
